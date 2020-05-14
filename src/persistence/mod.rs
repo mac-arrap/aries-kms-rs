@@ -78,7 +78,7 @@ pub struct PostgresConfig {
     uri: Option<String>,
 }
 
-#[derive(Serialize, Deserialize, Default, Debug, Clone)]
+
 pub struct PostgresPersistance {
     config : PostgresConfig,
     async_client: Result<(Client, Connection<Socket, tls::NoTlsStream>), errors::PersistenceErrorKind>,
@@ -197,8 +197,10 @@ impl Connect for PostgresPersistance {
                 Err(_) => Err(errors::PersistenceErrorKind::IOError),
             };
 
+            let async_postgres_persistance_clone = self.clone();
+            let async_client_clone = async_postgres_persistance_clone.async_client;
             tokio::spawn(async move {
-                if let Err(e) = self.async_client.unwrap().1.await {
+                if let Err(e) = async_client_clone.unwrap().1.await {
                     eprintln!("connection error: {}", e);
                 }
             });
